@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="vi">
+<body>
+    <h2>Dữ liệu từ TikTok Shop trả về:</h2>
+    <pre id="result" style="font-size: 16px; color: blue;"></pre>
+
+    <script>
+        // Lấy toàn bộ chuỗi tham số phía sau dấu ? trên URL
+        const params = new URLSearchParams(window.location.search);
+        let data = {};
+        
+        // Gom tất cả tham số vào một object
+        for (const [key, value] of params) {
+            data[key] = value;
+        }
+        
+        // In ra màn hình
+        const resultElement = document.getElementById("result");
+        if (Object.keys(data).length > 0) {
+            resultElement.innerText = JSON.stringify(data, null, 2);
+        } else {
+            resultElement.innerText = "Chưa có dữ liệu trên URL.";
+        }
+        
+        // In thêm ra Console (nhấn F12 để xem)
+        console.log("Dữ liệu bắt được:", data);
+    </script>
+</body>
+</html>
