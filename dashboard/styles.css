@@ -18,8 +18,9 @@ h1 { margin: 0; font-size: clamp(32px, 5vw, 52px); letter-spacing: -.04em; }
 form { min-width: min(100%, 360px); }
 label { display: block; margin-bottom: 8px; font-size: 13px; font-weight: 700; }
 .filter-row { display: flex; gap: 8px; }
-input, button { border: 1px solid #d8e0e2; border-radius: 12px; padding: 12px 14px; font: inherit; }
+input, select, button { border: 1px solid #d8e0e2; border-radius: 12px; padding: 12px 14px; font: inherit; }
 input { min-width: 0; flex: 1; background: white; }
+select { width: 100%; margin-bottom: 12px; background: white; }
 button { background: #142226; color: white; border-color: #142226; font-weight: 750; cursor: pointer; }
 button:hover { background: #263b40; }
 .status { min-height: 24px; margin-bottom: 14px; color: #536569; font-size: 14px; }
