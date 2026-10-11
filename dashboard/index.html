@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Bảng số liệu TikTok Shop" />
+    <title>Số liệu TikTok Shop</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header>
+        <div>
+          <p class="eyebrow">TIKTOK SHOP</p>
+          <h1>Số liệu cửa hàng</h1>
+          <p id="shopName" class="muted">Đang kết nối...</p>
+        </div>
+        <form id="filterForm">
+          <label for="reportDate">Ngày báo cáo</label>
+          <div class="filter-row">
+            <input id="reportDate" name="date" type="date" required />
+            <button type="submit">Xem số liệu</button>
+          </div>
+        </form>
+      </header>
+
+      <section id="status" class="status" role="status">Đang tải dữ liệu...</section>
+
+      <section class="cards" aria-label="Số liệu chính">
+        <article class="card card-gmv"><span>GMV</span><strong id="gmv">—</strong></article>
+        <article class="card"><span>Số món bán ra</span><strong id="itemsSold">—</strong></article>
+        <article class="card"><span>Đơn hàng SKU</span><strong id="skuOrders">—</strong></article>
+        <article class="card"><span>Đơn hàng</span><strong id="orders">—</strong></article>
+      </section>
+
+      <footer>Dữ liệu mới nhất: <span id="latestDate">—</span></footer>
+    </main>
+    <script src="app.js"></script>
+  </body>
+</html>
