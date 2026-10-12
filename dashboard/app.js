@@ -22,8 +22,31 @@ function showError(target, error) {
   target.textContent = error.message;
 }
 
+function selectedShopName() {
+  return $("shopSelect").selectedOptions[0]?.textContent || "TikTok Shop";
+}
+
+function resetDailyStats() {
+  $("shopName").textContent = selectedShopName();
+  $("gmv").textContent = "—";
+  $("itemsSold").textContent = "—";
+  $("skuOrders").textContent = "—";
+  $("orders").textContent = "—";
+  $("latestDate").textContent = "—";
+}
+
+function resetRangeStats() {
+  $("shopName").textContent = selectedShopName();
+  $("totalGmv").textContent = "—";
+  $("totalItemsSold").textContent = "—";
+  $("totalSkuOrders").textContent = "—";
+  $("totalOrders").textContent = "—";
+  $("totalRange").textContent = "—";
+}
+
 async function loadStats() {
   const status = $("status");
+  resetDailyStats();
   status.classList.remove("error");
   status.textContent = "Đang tải dữ liệu...";
   const shop = $("shopSelect").value;
@@ -43,6 +66,7 @@ async function loadStats() {
 
 async function loadRangeStats() {
   const status = $("totalStatus");
+  resetRangeStats();
   status.classList.remove("error");
   status.textContent = "Đang tải số liệu trong khoảng ngày...";
   const shop = $("shopSelect").value;
