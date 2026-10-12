@@ -37,5 +37,9 @@ button:hover { background: #263b40; }
 footer { margin-top: 22px; font-size: 13px; }
 .total-section { margin-top: 54px; padding-top: 30px; border-top: 1px solid #d8e0e2; }
 .total-card { background: rgba(238, 252, 251, .92); }
+.total-filter { width: 100%; max-width: 650px; display: grid; grid-template-columns: 1fr 1fr auto; align-items: end; gap: 10px; margin: 0 0 14px; }
+.total-filter input { width: 100%; }
+.total-filter button { height: 49px; }
+.total-filter small { grid-column: 1 / -1; color: #758589; }
 @media (max-width: 850px) { header { align-items: stretch; flex-direction: column; } .cards { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 520px) { .shell { padding-top: 36px; } .cards { grid-template-columns: 1fr; } .card { min-height: 135px; } .section-heading { align-items: start; flex-direction: column; gap: 8px; } }
+@media (max-width: 520px) { .shell { padding-top: 36px; } .cards { grid-template-columns: 1fr; } .card { min-height: 135px; } .section-heading { align-items: start; flex-direction: column; gap: 8px; } .total-filter { grid-template-columns: 1fr; } .total-filter small { grid-column: auto; } }

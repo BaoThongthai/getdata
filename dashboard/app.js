@@ -8,6 +8,12 @@ function yesterdayISO() {
   return value.toISOString().slice(0, 10);
 }
 
+function daysAgoISO(days) {
+  const value = new Date();
+  value.setDate(value.getDate() - days);
+  return value.toISOString().slice(0, 10);
+}
+
 function money(amount, currency) {
   const numeric = Number(amount);
   if (!Number.isFinite(numeric)) return `${amount ?? 0} ${currency ?? ""}`.trim();
@@ -34,7 +40,9 @@ async function loadTotals() {
   $("totalStatus").classList.remove("error");
   $("totalStatus").textContent = "Đang tính tổng tất cả các ngày...";
   const shop = $("shopSelect").value;
-  const response = await fetch(`${API_URL}/api/total?shop=${encodeURIComponent(shop)}`);
+  const startDate = $("totalStartDate").value;
+  const endDate = $("totalEndDate").value;
+  const response = await fetch(`${API_URL}/api/total?shop=${encodeURIComponent(shop)}&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}`);
   const result = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(result.error || `Máy chủ trả lỗi HTTP ${response.status}`);
   $("totalGmv").textContent = money(result.gmv, result.currency);
@@ -70,9 +78,16 @@ async function loadShops() {
 }
 
 $("reportDate").value = yesterdayISO();
+$("totalStartDate").value = daysAgoISO(365);
+$("totalEndDate").value = yesterdayISO();
 $("filterForm").addEventListener("submit", async (event) => {
   event.preventDefault();
   await loadDashboard($("reportDate").value);
+});
+$("totalFilterForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  try { await loadTotals(); }
+  catch (error) { $("totalStatus").classList.add("error"); $("totalStatus").textContent = error.message; }
 });
 loadShops()
   .then(() => loadDashboard($("reportDate").value))

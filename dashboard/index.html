@@ -45,6 +45,18 @@
           <div><p class="section-kicker">TẤT CẢ CÁC NGÀY</p><h2 id="totalTitle">Tổng tích lũy</h2></div>
           <p class="range">Từ <span id="totalRange">—</span></p>
         </div>
+        <form id="totalFilterForm" class="total-filter">
+          <div>
+            <label for="totalStartDate">Từ ngày</label>
+            <input id="totalStartDate" name="totalStartDate" type="date" required />
+          </div>
+          <div>
+            <label for="totalEndDate">Đến ngày</label>
+            <input id="totalEndDate" name="totalEndDate" type="date" required />
+          </div>
+          <button type="submit">Xem tổng</button>
+          <small>Chọn tối đa 365 ngày.</small>
+        </form>
         <p id="totalStatus" class="status" role="status">Đang tính tổng tất cả các ngày...</p>
         <div class="cards" aria-label="Tổng số liệu tất cả các ngày">
           <article class="card total-card card-gmv"><span>Tổng GMV</span><strong id="totalGmv">—</strong></article>
