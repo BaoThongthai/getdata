@@ -42,9 +42,10 @@
 
       <section class="total-section" aria-labelledby="totalTitle">
         <div class="section-heading">
-          <div><p class="section-kicker">TẤT CẢ CÁC NGÀY</p><h2 id="totalTitle">Tổng tích lũy</h2></div>
-          <p class="range">Từ <span id="totalRange">—</span></p>
+          <div><p class="section-kicker">KHOẢNG NGÀY</p><h2 id="totalTitle">Xem số liệu theo khoảng ngày</h2></div>
+          <p class="range">Khoảng đang xem: <span id="totalRange">—</span></p>
         </div>
+        <p class="range-help">Chọn ngày bắt đầu và ngày kết thúc mà bạn muốn xem.</p>
         <form id="totalFilterForm" class="total-filter">
           <div>
             <label for="totalStartDate">Từ ngày</label>
@@ -54,15 +55,15 @@
             <label for="totalEndDate">Đến ngày</label>
             <input id="totalEndDate" name="totalEndDate" type="date" required />
           </div>
-          <button type="submit">Xem tổng</button>
+          <button type="submit">Xem khoảng ngày</button>
           <small>Chọn tối đa 365 ngày.</small>
         </form>
-        <p id="totalStatus" class="status" role="status">Đang tính tổng tất cả các ngày...</p>
-        <div class="cards" aria-label="Tổng số liệu tất cả các ngày">
-          <article class="card total-card card-gmv"><span>Tổng GMV</span><strong id="totalGmv">—</strong></article>
-          <article class="card total-card"><span>Tổng số món bán ra</span><strong id="totalItemsSold">—</strong></article>
-          <article class="card total-card"><span>Tổng đơn hàng SKU</span><strong id="totalSkuOrders">—</strong></article>
-          <article class="card total-card"><span>Tổng đơn hàng</span><strong id="totalOrders">—</strong></article>
+        <p id="totalStatus" class="status" role="status">Đang tải số liệu trong khoảng ngày...</p>
+        <div class="cards" aria-label="Số liệu theo khoảng ngày">
+          <article class="card total-card card-gmv"><span>GMV trong khoảng</span><strong id="totalGmv">—</strong></article>
+          <article class="card total-card"><span>Số món bán ra</span><strong id="totalItemsSold">—</strong></article>
+          <article class="card total-card"><span>Đơn hàng SKU</span><strong id="totalSkuOrders">—</strong></article>
+          <article class="card total-card"><span>Đơn hàng</span><strong id="totalOrders">—</strong></article>
         </div>
       </section>
     </main>

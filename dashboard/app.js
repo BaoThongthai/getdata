@@ -38,7 +38,7 @@ async function loadStats(date) {
 
 async function loadTotals() {
   $("totalStatus").classList.remove("error");
-  $("totalStatus").textContent = "Đang tính tổng tất cả các ngày...";
+  $("totalStatus").textContent = "Đang tải số liệu trong khoảng ngày...";
   const shop = $("shopSelect").value;
   const startDate = $("totalStartDate").value;
   const endDate = $("totalEndDate").value;
@@ -50,7 +50,7 @@ async function loadTotals() {
   $("totalSkuOrders").textContent = numberFormat.format(result.sku_orders_count || 0);
   $("totalOrders").textContent = numberFormat.format(result.orders_count || 0);
   $("totalRange").textContent = `${result.period_start} đến ${result.period_end}`;
-  $("totalStatus").textContent = "Tổng số liệu của tất cả các ngày đang có.";
+  $("totalStatus").textContent = `Đã cập nhật số liệu từ ${result.period_start} đến ${result.period_end}.`;
 }
 
 async function loadDashboard(date) {
