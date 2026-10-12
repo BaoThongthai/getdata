@@ -28,7 +28,10 @@
 
       <section id="status" class="status" role="status">Đang tải dữ liệu...</section>
 
-      <section class="cards" aria-label="Số liệu chính">
+      <div class="section-heading">
+        <div><p class="section-kicker">THEO NGÀY</p><h2>Số liệu ngày đã chọn</h2></div>
+      </div>
+      <section class="cards" aria-label="Số liệu ngày đã chọn">
         <article class="card card-gmv"><span>GMV</span><strong id="gmv">—</strong></article>
         <article class="card"><span>Số món bán ra</span><strong id="itemsSold">—</strong></article>
         <article class="card"><span>Đơn hàng SKU</span><strong id="skuOrders">—</strong></article>
@@ -36,6 +39,20 @@
       </section>
 
       <footer>Dữ liệu mới nhất: <span id="latestDate">—</span></footer>
+
+      <section class="total-section" aria-labelledby="totalTitle">
+        <div class="section-heading">
+          <div><p class="section-kicker">TẤT CẢ CÁC NGÀY</p><h2 id="totalTitle">Tổng tích lũy</h2></div>
+          <p class="range">Từ <span id="totalRange">—</span></p>
+        </div>
+        <p id="totalStatus" class="status" role="status">Đang tính tổng tất cả các ngày...</p>
+        <div class="cards" aria-label="Tổng số liệu tất cả các ngày">
+          <article class="card total-card card-gmv"><span>Tổng GMV</span><strong id="totalGmv">—</strong></article>
+          <article class="card total-card"><span>Tổng số món bán ra</span><strong id="totalItemsSold">—</strong></article>
+          <article class="card total-card"><span>Tổng đơn hàng SKU</span><strong id="totalSkuOrders">—</strong></article>
+          <article class="card total-card"><span>Tổng đơn hàng</span><strong id="totalOrders">—</strong></article>
+        </div>
+      </section>
     </main>
     <script src="app.js"></script>
   </body>

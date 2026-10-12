@@ -30,6 +30,33 @@ async function loadStats(date) {
   $("status").textContent = `Đã cập nhật số liệu ngày ${date}.`;
 }
 
+async function loadTotals() {
+  $("totalStatus").classList.remove("error");
+  $("totalStatus").textContent = "Đang tính tổng tất cả các ngày...";
+  const shop = $("shopSelect").value;
+  const response = await fetch(`${API_URL}/api/total?shop=${encodeURIComponent(shop)}`);
+  const result = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(result.error || `Máy chủ trả lỗi HTTP ${response.status}`);
+  $("totalGmv").textContent = money(result.gmv, result.currency);
+  $("totalItemsSold").textContent = numberFormat.format(result.items_sold || 0);
+  $("totalSkuOrders").textContent = numberFormat.format(result.sku_orders_count || 0);
+  $("totalOrders").textContent = numberFormat.format(result.orders_count || 0);
+  $("totalRange").textContent = `${result.period_start} đến ${result.period_end}`;
+  $("totalStatus").textContent = "Tổng số liệu của tất cả các ngày đang có.";
+}
+
+async function loadDashboard(date) {
+  const results = await Promise.allSettled([loadStats(date), loadTotals()]);
+  if (results[0].status === "rejected") {
+    $("status").classList.add("error");
+    $("status").textContent = results[0].reason.message;
+  }
+  if (results[1].status === "rejected") {
+    $("totalStatus").classList.add("error");
+    $("totalStatus").textContent = results[1].reason.message;
+  }
+}
+
 async function loadShops() {
   const response = await fetch(`${API_URL}/api/shops`);
   const shops = await response.json().catch(() => []);
@@ -45,9 +72,8 @@ async function loadShops() {
 $("reportDate").value = yesterdayISO();
 $("filterForm").addEventListener("submit", async (event) => {
   event.preventDefault();
-  try { await loadStats($("reportDate").value); }
-  catch (error) { $("status").classList.add("error"); $("status").textContent = error.message; }
+  await loadDashboard($("reportDate").value);
 });
 loadShops()
-  .then(() => loadStats($("reportDate").value))
+  .then(() => loadDashboard($("reportDate").value))
   .catch((error) => { $("status").classList.add("error"); $("status").textContent = error.message; });
