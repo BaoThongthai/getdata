@@ -53,6 +53,7 @@ async function loadStats() {
   const date = $("reportDate").value;
   const response = await fetch(`${API_URL}/api/stats?shop=${encodeURIComponent(shop)}&date=${encodeURIComponent(date)}`);
   const result = await response.json().catch(() => ({}));
+  if ($("shopSelect").value !== shop) return;
   if (!response.ok) throw new Error(result.error || `Máy chủ trả lỗi HTTP ${response.status}`);
   $("shopName").textContent = result.shop_name || "TikTok Shop";
   $("gmv").textContent = money(result.gmv, result.currency);
@@ -74,6 +75,7 @@ async function loadRangeStats() {
   const endDate = $("totalEndDate").value;
   const response = await fetch(`${API_URL}/api/total?shop=${encodeURIComponent(shop)}&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}`);
   const result = await response.json().catch(() => ({}));
+  if ($("shopSelect").value !== shop) return;
   if (!response.ok) throw new Error(result.error || `Máy chủ trả lỗi HTTP ${response.status}`);
   $("shopName").textContent = result.shop_name || "TikTok Shop";
   $("totalGmv").textContent = money(result.gmv, result.currency);
