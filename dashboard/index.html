@@ -8,63 +8,65 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <main class="shell">
-      <header>
-        <div>
-          <p class="eyebrow">TIKTOK SHOP</p>
-          <h1>Số liệu cửa hàng</h1>
-          <p id="shopName" class="muted">Đang kết nối...</p>
-        </div>
-        <form id="filterForm">
-          <label for="shopSelect">Cửa hàng</label>
-          <select id="shopSelect" name="shop" required></select>
-          <label for="reportDate">Ngày báo cáo</label>
-          <div class="filter-row">
-            <input id="reportDate" name="date" type="date" required />
-            <button type="submit">Xem số liệu</button>
+    <main class="page-shell">
+      <header class="brand-header">
+        <div class="brand-lockup">
+          <img class="brand-logo" src="assets/vifon-logo.png" alt="VIFON - Luôn Vì Hôm Nay Từ 1963" />
+          <div>
+            <p class="eyebrow">VIFON · TIKTOK SHOP</p>
+            <h1>Báo cáo cửa hàng</h1>
+            <p id="shopName" class="shop-name">Đang kết nối...</p>
           </div>
-        </form>
+        </div>
+        <div class="shop-picker">
+          <label for="shopSelect">Cửa hàng đang xem</label>
+          <select id="shopSelect" name="shop" required></select>
+        </div>
       </header>
 
-      <section id="status" class="status" role="status">Đang tải dữ liệu...</section>
-
-      <div class="section-heading">
-        <div><p class="section-kicker">THEO NGÀY</p><h2>Số liệu ngày đã chọn</h2></div>
-      </div>
-      <section class="cards" aria-label="Số liệu ngày đã chọn">
-        <article class="card card-gmv"><span>GMV</span><strong id="gmv">—</strong></article>
-        <article class="card"><span>Số món bán ra</span><strong id="itemsSold">—</strong></article>
-        <article class="card"><span>Đơn hàng SKU</span><strong id="skuOrders">—</strong></article>
-        <article class="card"><span>Đơn hàng</span><strong id="orders">—</strong></article>
-      </section>
-
-      <footer>Dữ liệu mới nhất: <span id="latestDate">—</span></footer>
-
-      <section class="total-section" aria-labelledby="totalTitle">
-        <div class="section-heading">
-          <div><p class="section-kicker">KHOẢNG NGÀY</p><h2 id="totalTitle">Xem số liệu theo khoảng ngày</h2></div>
-          <p class="range">Khoảng đang xem: <span id="totalRange">—</span></p>
+      <section class="report-shell">
+        <div class="tabs" role="tablist" aria-label="Chọn cách xem số liệu">
+          <button id="dayTab" class="tab-button active" type="button" role="tab" aria-selected="true" aria-controls="dayPanel">Xem theo ngày</button>
+          <button id="rangeTab" class="tab-button" type="button" role="tab" aria-selected="false" aria-controls="rangePanel">Xem theo khoảng ngày</button>
         </div>
-        <p class="range-help">Chọn ngày bắt đầu và ngày kết thúc mà bạn muốn xem.</p>
-        <form id="totalFilterForm" class="total-filter">
-          <div>
-            <label for="totalStartDate">Từ ngày</label>
-            <input id="totalStartDate" name="totalStartDate" type="date" required />
+
+        <section id="dayPanel" class="tab-panel" role="tabpanel" aria-labelledby="dayTab">
+          <div class="panel-heading">
+            <div><p class="section-kicker">BÁO CÁO MỘT NGÀY</p><h2>Số liệu ngày đã chọn</h2></div>
+            <form id="filterForm" class="date-form">
+              <div><label for="reportDate">Ngày báo cáo</label><input id="reportDate" name="date" type="date" required /></div>
+              <button type="submit">Xem số liệu</button>
+            </form>
           </div>
-          <div>
-            <label for="totalEndDate">Đến ngày</label>
-            <input id="totalEndDate" name="totalEndDate" type="date" required />
+          <p id="status" class="status" role="status">Đang tải dữ liệu...</p>
+          <div class="cards" aria-label="Số liệu ngày đã chọn">
+            <article class="metric-card primary"><span>GMV</span><strong id="gmv">—</strong></article>
+            <article class="metric-card"><span>Số món bán ra</span><strong id="itemsSold">—</strong></article>
+            <article class="metric-card"><span>Đơn hàng SKU</span><strong id="skuOrders">—</strong></article>
+            <article class="metric-card"><span>Đơn hàng</span><strong id="orders">—</strong></article>
           </div>
-          <button type="submit">Xem khoảng ngày</button>
-          <small>Chọn tối đa 365 ngày.</small>
-        </form>
-        <p id="totalStatus" class="status" role="status">Đang tải số liệu trong khoảng ngày...</p>
-        <div class="cards" aria-label="Số liệu theo khoảng ngày">
-          <article class="card total-card card-gmv"><span>GMV trong khoảng</span><strong id="totalGmv">—</strong></article>
-          <article class="card total-card"><span>Số món bán ra</span><strong id="totalItemsSold">—</strong></article>
-          <article class="card total-card"><span>Đơn hàng SKU</span><strong id="totalSkuOrders">—</strong></article>
-          <article class="card total-card"><span>Đơn hàng</span><strong id="totalOrders">—</strong></article>
-        </div>
+          <p class="data-note">Dữ liệu mới nhất: <span id="latestDate">—</span></p>
+        </section>
+
+        <section id="rangePanel" class="tab-panel" role="tabpanel" aria-labelledby="rangeTab" hidden>
+          <div class="panel-heading range-heading">
+            <div><p class="section-kicker">BÁO CÁO KHOẢNG NGÀY</p><h2>Chọn khoảng thời gian cần xem</h2></div>
+            <p class="range">Khoảng đang xem: <span id="totalRange">—</span></p>
+          </div>
+          <form id="totalFilterForm" class="range-form">
+            <div><label for="totalStartDate">Từ ngày</label><input id="totalStartDate" name="totalStartDate" type="date" required /></div>
+            <div><label for="totalEndDate">Đến ngày</label><input id="totalEndDate" name="totalEndDate" type="date" required /></div>
+            <button type="submit">Xem khoảng ngày</button>
+          </form>
+          <p class="limit-note">Có thể chọn tối đa 365 ngày.</p>
+          <p id="totalStatus" class="status" role="status">Chọn khoảng ngày rồi bấm “Xem khoảng ngày”.</p>
+          <div class="cards" aria-label="Số liệu theo khoảng ngày">
+            <article class="metric-card primary"><span>GMV trong khoảng</span><strong id="totalGmv">—</strong></article>
+            <article class="metric-card"><span>Số món bán ra</span><strong id="totalItemsSold">—</strong></article>
+            <article class="metric-card"><span>Đơn hàng SKU</span><strong id="totalSkuOrders">—</strong></article>
+            <article class="metric-card"><span>Đơn hàng</span><strong id="totalOrders">—</strong></article>
+          </div>
+        </section>
       </section>
     </main>
     <script src="app.js"></script>

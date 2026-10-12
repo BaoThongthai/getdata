@@ -1,12 +1,9 @@
 const API_URL = "https://tiktok-shop-dashboard-api.nhatrang-mart-api.workers.dev";
 const $ = (id) => document.getElementById(id);
 const numberFormat = new Intl.NumberFormat("vi-VN");
-
-function yesterdayISO() {
-  const value = new Date();
-  value.setDate(value.getDate() - 1);
-  return value.toISOString().slice(0, 10);
-}
+let activeTab = "day";
+let dailyShop = "";
+let rangeShop = "";
 
 function daysAgoISO(days) {
   const value = new Date();
@@ -20,10 +17,17 @@ function money(amount, currency) {
   return new Intl.NumberFormat("vi-VN", { style: "currency", currency: currency || "VND", maximumFractionDigits: currency === "VND" ? 0 : 2 }).format(numeric);
 }
 
-async function loadStats(date) {
-  $("status").classList.remove("error");
-  $("status").textContent = "Đang tải dữ liệu...";
+function showError(target, error) {
+  target.classList.add("error");
+  target.textContent = error.message;
+}
+
+async function loadStats() {
+  const status = $("status");
+  status.classList.remove("error");
+  status.textContent = "Đang tải dữ liệu...";
   const shop = $("shopSelect").value;
+  const date = $("reportDate").value;
   const response = await fetch(`${API_URL}/api/stats?shop=${encodeURIComponent(shop)}&date=${encodeURIComponent(date)}`);
   const result = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(result.error || `Máy chủ trả lỗi HTTP ${response.status}`);
@@ -33,36 +37,28 @@ async function loadStats(date) {
   $("skuOrders").textContent = numberFormat.format(result.sku_orders_count || 0);
   $("orders").textContent = numberFormat.format(result.orders_count || 0);
   $("latestDate").textContent = result.latest_available_date || "Không rõ";
-  $("status").textContent = `Đã cập nhật số liệu ngày ${date}.`;
+  status.textContent = `Đã cập nhật số liệu ngày ${date}.`;
+  dailyShop = shop;
 }
 
-async function loadTotals() {
-  $("totalStatus").classList.remove("error");
-  $("totalStatus").textContent = "Đang tải số liệu trong khoảng ngày...";
+async function loadRangeStats() {
+  const status = $("totalStatus");
+  status.classList.remove("error");
+  status.textContent = "Đang tải số liệu trong khoảng ngày...";
   const shop = $("shopSelect").value;
   const startDate = $("totalStartDate").value;
   const endDate = $("totalEndDate").value;
   const response = await fetch(`${API_URL}/api/total?shop=${encodeURIComponent(shop)}&start_date=${encodeURIComponent(startDate)}&end_date=${encodeURIComponent(endDate)}`);
   const result = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(result.error || `Máy chủ trả lỗi HTTP ${response.status}`);
+  $("shopName").textContent = result.shop_name || "TikTok Shop";
   $("totalGmv").textContent = money(result.gmv, result.currency);
   $("totalItemsSold").textContent = numberFormat.format(result.items_sold || 0);
   $("totalSkuOrders").textContent = numberFormat.format(result.sku_orders_count || 0);
   $("totalOrders").textContent = numberFormat.format(result.orders_count || 0);
   $("totalRange").textContent = `${result.period_start} đến ${result.period_end}`;
-  $("totalStatus").textContent = `Đã cập nhật số liệu từ ${result.period_start} đến ${result.period_end}.`;
-}
-
-async function loadDashboard(date) {
-  const results = await Promise.allSettled([loadStats(date), loadTotals()]);
-  if (results[0].status === "rejected") {
-    $("status").classList.add("error");
-    $("status").textContent = results[0].reason.message;
-  }
-  if (results[1].status === "rejected") {
-    $("totalStatus").classList.add("error");
-    $("totalStatus").textContent = results[1].reason.message;
-  }
+  status.textContent = `Đã cập nhật số liệu từ ${result.period_start} đến ${result.period_end}.`;
+  rangeShop = shop;
 }
 
 async function loadShops() {
@@ -77,18 +73,36 @@ async function loadShops() {
   }));
 }
 
-$("reportDate").value = yesterdayISO();
-$("totalStartDate").value = daysAgoISO(365);
-$("totalEndDate").value = yesterdayISO();
+async function switchTab(tab) {
+  activeTab = tab;
+  const isDay = tab === "day";
+  $("dayTab").classList.toggle("active", isDay);
+  $("rangeTab").classList.toggle("active", !isDay);
+  $("dayTab").setAttribute("aria-selected", String(isDay));
+  $("rangeTab").setAttribute("aria-selected", String(!isDay));
+  $("dayPanel").hidden = !isDay;
+  $("rangePanel").hidden = isDay;
+  const shop = $("shopSelect").value;
+  try {
+    if (isDay && dailyShop !== shop) await loadStats();
+    if (!isDay && rangeShop !== shop) await loadRangeStats();
+  } catch (error) {
+    showError(isDay ? $("status") : $("totalStatus"), error);
+  }
+}
+
+$("reportDate").value = daysAgoISO(1);
+$("totalStartDate").value = daysAgoISO(30);
+$("totalEndDate").value = daysAgoISO(1);
+$("dayTab").addEventListener("click", () => switchTab("day"));
+$("rangeTab").addEventListener("click", () => switchTab("range"));
+$("shopSelect").addEventListener("change", () => { dailyShop = ""; rangeShop = ""; switchTab(activeTab); });
 $("filterForm").addEventListener("submit", async (event) => {
   event.preventDefault();
-  await loadDashboard($("reportDate").value);
+  try { await loadStats(); } catch (error) { showError($("status"), error); }
 });
 $("totalFilterForm").addEventListener("submit", async (event) => {
   event.preventDefault();
-  try { await loadTotals(); }
-  catch (error) { $("totalStatus").classList.add("error"); $("totalStatus").textContent = error.message; }
+  try { await loadRangeStats(); } catch (error) { showError($("totalStatus"), error); }
 });
-loadShops()
-  .then(() => loadDashboard($("reportDate").value))
-  .catch((error) => { $("status").classList.add("error"); $("status").textContent = error.message; });
+loadShops().then(() => loadStats()).catch((error) => showError($("status"), error));
