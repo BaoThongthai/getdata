@@ -7,7 +7,7 @@
     <title>Dashboard Vifon Miền Trung 1</title>
     <link rel="icon" type="image/png" href="assets/vifon-logo.png?v=1" />
     <link rel="apple-touch-icon" href="assets/vifon-logo.png?v=1" />
-    <link rel="stylesheet" href="styles.css?v=mobile-2x2" />
+    <link rel="stylesheet" href="styles.css?v=monthly-1" />
   </head>
   <body>
     <main class="page-shell">
@@ -30,6 +30,7 @@
         <div class="tabs" role="tablist" aria-label="Chọn cách xem số liệu">
           <button id="dayTab" class="tab-button active" type="button" role="tab" aria-selected="true" aria-controls="dayPanel">Xem theo ngày</button>
           <button id="rangeTab" class="tab-button" type="button" role="tab" aria-selected="false" aria-controls="rangePanel">Xem theo khoảng ngày</button>
+          <button id="monthTab" class="tab-button" type="button" role="tab" aria-selected="false" aria-controls="monthPanel">Doanh số tháng</button>
         </div>
 
         <section id="dayPanel" class="tab-panel" role="tabpanel" aria-labelledby="dayTab">
@@ -69,8 +70,27 @@
             <article class="metric-card"><span>Đơn hàng</span><strong id="totalOrders">—</strong></article>
           </div>
         </section>
+        <section id="monthPanel" class="tab-panel" role="tabpanel" aria-labelledby="monthTab" hidden>
+          <div class="panel-heading">
+            <div><p class="section-kicker">TỔNG QUAN CÁC CỬA HÀNG</p><h2>Doanh số theo tháng</h2></div>
+            <form id="monthFilterForm" class="date-form">
+              <div><label for="reportMonth">Tháng báo cáo</label><input id="reportMonth" name="month" type="month" required /></div>
+              <button type="submit">Xem tháng</button>
+            </form>
+          </div>
+          <p id="monthStatus" class="status" role="status">Chọn tháng để xem doanh số tất cả cửa hàng.</p>
+          <div class="month-summary">
+            <div><span id="monthTotalLabel">Tổng GMV tất cả cửa hàng</span><strong id="monthTotal">—</strong></div>
+            <div class="month-summary-info"><span id="monthCoverage">—</span><span id="monthPeriod">—</span></div>
+          </div>
+          <p id="monthNote" class="data-note"></p>
+          <figure class="monthly-figure">
+            <figcaption>GMV từng cửa hàng <span>Đơn vị: triệu đồng</span></figcaption>
+            <div class="chart-scroll" tabindex="0" aria-label="Biểu đồ cột GMV từng cửa hàng, có thể cuộn ngang trên điện thoại"><div id="monthChart"></div></div>
+          </figure>
+        </section>
       </section>
     </main>
-    <script src="app.js?v=9af3826"></script>
+    <script src="app.js?v=monthly-1"></script>
   </body>
 </html>

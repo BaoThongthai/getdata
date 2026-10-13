@@ -26,7 +26,7 @@ label { display: block; margin-bottom: 7px; color: #514144; font-size: 13px; fon
 input, select { width: 100%; min-height: 48px; border: 1px solid var(--line); border-radius: 12px; padding: 11px 13px; color: var(--ink); background: white; outline: none; }
 input:focus, select:focus { border-color: var(--red); box-shadow: 0 0 0 3px rgba(245, 27, 41, .12); }
 .report-shell { overflow: hidden; background: rgba(255, 255, 255, .94); border: 1px solid var(--line); border-radius: 26px; box-shadow: 0 24px 70px rgba(145, 24, 34, .10); }
-.tabs { display: grid; grid-template-columns: 1fr 1fr; padding: 8px; background: var(--red); }
+.tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 8px; background: var(--red); }
 .tab-button { min-height: 54px; border: 0; border-radius: 15px; padding: 12px 18px; color: white; background: transparent; font-weight: 850; cursor: pointer; transition: .18s ease; }
 .tab-button:hover { background: rgba(255, 255, 255, .12); }
 .tab-button.active { color: var(--red); background: white; box-shadow: 0 5px 16px rgba(128, 5, 14, .22); }
@@ -49,6 +49,16 @@ button[type="submit"]:hover { background: var(--red-dark); border-color: var(--r
 .metric-card.primary { color: white; background: var(--red); border-color: var(--red); }
 .metric-card.primary span { color: rgba(255, 255, 255, .82); }
 .data-note { margin: 18px 0 0; color: var(--muted); font-size: 13px; }
+.month-summary { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 24px; border-radius: 18px; color: white; background: var(--red); }
+.month-summary strong { display: block; margin-top: 8px; font-size: clamp(26px, 4vw, 42px); letter-spacing: -.035em; }
+.month-summary span { font-size: 14px; }
+.month-summary-info { display: grid; gap: 8px; text-align: right; }
+.monthly-figure { margin: 28px 0; padding: 18px 12px 8px; border: 1px solid var(--line); border-radius: 18px; background: white; }
+.monthly-figure figcaption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; padding: 0 10px; font-weight: 800; }
+.monthly-figure figcaption span { color: var(--muted); font-weight: 400; font-size: 12px; }
+.chart-scroll { overflow-x: auto; }
+.chart-scroll:focus-visible { outline: 2px solid var(--red); outline-offset: 3px; }
+#monthChart svg { display: block; width: 100%; min-width: 720px; height: auto; }
 @media (max-width: 860px) { .brand-header, .panel-heading { align-items: stretch; flex-direction: column; } .shop-picker, .date-form { width: 100%; max-width: none; } .cards { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 590px) {
   .page-shell { width: min(100% - 20px, 1180px); padding-top: 16px; }
@@ -59,7 +69,7 @@ button[type="submit"]:hover { background: var(--red-dark); border-color: var(--r
   h2 { font-size: 22px; }
   .eyebrow { font-size: 10px; letter-spacing: .1em; }
   .shop-name { font-size: 12px; overflow-wrap: anywhere; }
-  .tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; padding: 6px; }
+  .tabs { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; padding: 6px; }
   .tab-button { min-height: 44px; padding: 8px 6px; border-radius: 10px; font-size: 12px; }
   .tab-panel { padding: 20px 12px; }
   .panel-heading { gap: 16px; }
@@ -74,4 +84,7 @@ button[type="submit"]:hover { background: var(--red-dark); border-color: var(--r
   .metric-card span { font-size: 12px; }
   .metric-card strong { font-size: clamp(15px, 4.6vw, 25px); white-space: nowrap; }
   .status, .data-note, .range { font-size: 12px; }
+  .month-summary { align-items: start; flex-direction: column; gap: 12px; padding: 18px 14px; }
+  .month-summary-info { text-align: left; }
+  .month-summary span { font-size: 12px; }
 }

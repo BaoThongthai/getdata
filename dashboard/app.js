@@ -4,6 +4,9 @@ const numberFormat = new Intl.NumberFormat("vi-VN");
 let activeTab = "day";
 let dailyShop = "";
 let rangeShop = "";
+let allShops = [];
+let monthlyLoaded = "";
+let monthController;
 
 function daysAgoISO(days) {
   const value = new Date();
@@ -55,7 +58,7 @@ async function loadStats() {
   const result = await response.json().catch(() => ({}));
   if ($("shopSelect").value !== shop) return;
   if (!response.ok) throw new Error(result.error || `Máy chủ trả lỗi HTTP ${response.status}`);
-  $("shopName").textContent = result.shop_name || "TikTok Shop";
+  if (activeTab !== "month") $("shopName").textContent = result.shop_name || "TikTok Shop";
   $("gmv").textContent = money(result.gmv, result.currency);
   $("itemsSold").textContent = numberFormat.format(result.items_sold || 0);
   $("skuOrders").textContent = numberFormat.format(result.sku_orders_count || 0);
@@ -77,7 +80,7 @@ async function loadRangeStats() {
   const result = await response.json().catch(() => ({}));
   if ($("shopSelect").value !== shop) return;
   if (!response.ok) throw new Error(result.error || `Máy chủ trả lỗi HTTP ${response.status}`);
-  $("shopName").textContent = result.shop_name || "TikTok Shop";
+  if (activeTab !== "month") $("shopName").textContent = result.shop_name || "TikTok Shop";
   $("totalGmv").textContent = money(result.gmv, result.currency);
   $("totalItemsSold").textContent = numberFormat.format(result.items_sold || 0);
   $("totalSkuOrders").textContent = numberFormat.format(result.sku_orders_count || 0);
@@ -91,6 +94,7 @@ async function loadShops() {
   const response = await fetch(`${API_URL}/api/shops`);
   const shops = await response.json().catch(() => []);
   if (!response.ok || !Array.isArray(shops) || shops.length === 0) throw new Error("Không tải được danh sách shop.");
+  allShops = shops;
   $("shopSelect").replaceChildren(...shops.map((shop) => {
     const option = document.createElement("option");
     option.value = shop.key;
@@ -101,27 +105,165 @@ async function loadShops() {
 
 async function switchTab(tab) {
   activeTab = tab;
-  const isDay = tab === "day";
-  $("dayTab").classList.toggle("active", isDay);
-  $("rangeTab").classList.toggle("active", !isDay);
-  $("dayTab").setAttribute("aria-selected", String(isDay));
-  $("rangeTab").setAttribute("aria-selected", String(!isDay));
-  $("dayPanel").hidden = !isDay;
-  $("rangePanel").hidden = isDay;
+  for (const name of ["day", "range", "month"]) {
+    $(`${name}Tab`).classList.toggle("active", tab === name);
+    $(`${name}Tab`).setAttribute("aria-selected", String(tab === name));
+    $(`${name}Panel`).hidden = tab !== name;
+  }
+  $("shopSelect").closest(".shop-picker").hidden = tab === "month";
+  $("shopName").textContent = tab === "month" ? "Tất cả cửa hàng" : selectedShopName();
   const shop = $("shopSelect").value;
   try {
-    if (isDay && dailyShop !== shop) await loadStats();
-    if (!isDay && rangeShop !== shop) await loadRangeStats();
+    if (tab === "day" && dailyShop !== shop) await loadStats();
+    if (tab === "range" && rangeShop !== shop) await loadRangeStats();
+    if (tab === "month" && monthlyLoaded !== $("reportMonth").value) await loadMonthlyStats();
   } catch (error) {
-    showError(isDay ? $("status") : $("totalStatus"), error);
+    showError($(tab === "day" ? "status" : tab === "range" ? "totalStatus" : "monthStatus"), error);
   }
+}
+
+function vietnamDate() {
+  const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Ho_Chi_Minh", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(new Date());
+  const value = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
+  return `${value.year}-${value.month}-${value.day}`;
+}
+
+function shiftDate(date, days) {
+  const value = new Date(`${date}T00:00:00Z`);
+  value.setUTCDate(value.getUTCDate() + days);
+  return value.toISOString().slice(0, 10);
+}
+
+function monthRange(month) {
+  if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) throw new Error("Vui lòng chọn tháng báo cáo.");
+  const today = vietnamDate();
+  const first = `${month}-01`;
+  const next = new Date(`${first}T00:00:00Z`);
+  next.setUTCMonth(next.getUTCMonth() + 1);
+  const last = shiftDate(next.toISOString().slice(0, 10), -1);
+  const earliest = shiftDate(today, -365);
+  const yesterday = shiftDate(today, -1);
+  const start = first < earliest ? earliest : first;
+  const end = last > yesterday ? yesterday : last;
+  if (start > end) throw new Error("Tháng này chưa có dữ liệu hoặc nằm ngoài 365 ngày gần nhất.");
+  return { start, end, partial: start !== first || end !== last };
+}
+
+function toCents(amount) {
+  const text = String(amount);
+  if (!/^\d+(\.\d{1,2})?$/.test(text)) throw new Error("GMV trả về không hợp lệ.");
+  const [whole, fraction = ""] = text.split(".");
+  return BigInt(whole) * 100n + BigInt(fraction.padEnd(2, "0"));
+}
+
+function svgElement(tag, attrs = {}, text) {
+  const node = document.createElementNS("http://www.w3.org/2000/svg", tag);
+  for (const [key, value] of Object.entries(attrs)) node.setAttribute(key, String(value));
+  if (text !== undefined) node.textContent = text;
+  return node;
+}
+
+function renderMonthlyChart(rows, month) {
+  const names = { "nha-trang-mart": "Nhã Trang", "duc-tuyet": "Đức Tuyết", "phuoc-tai-da-nang": "Phước Tài", "bao-huy": "Bảo Huy", "thong-tu": "Thông Tứ", "phuong-my": "Phương My", "tien-quy": "Tiến Quý", "hoang-long": "Hoàng Long" };
+  const width = Math.max(760, rows.length * 100 + 70), height = 400;
+  const left = 58, right = 20, top = 42, base = 312, plot = base - top;
+  const amounts = rows.map(row => row.cents === null ? 0 : Number(row.cents) / 100);
+  const max = Math.max(...amounts, 1);
+  const step = (width - left - right) / rows.length;
+  const svg = svgElement("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", "aria-labelledby": "monthChartTitle monthChartDesc" });
+  svg.append(svgElement("title", { id: "monthChartTitle" }, `GMV từng cửa hàng tháng ${month}`));
+  svg.append(svgElement("desc", { id: "monthChartDesc" }, rows.map(row => `${row.name}: ${row.cents === null ? "chưa tải được" : money(Number(row.cents) / 100, "VND")}`).join(". ")));
+  for (let tick = 0; tick <= 4; tick++) {
+    const y = base - plot * tick / 4;
+    svg.append(svgElement("line", { x1: left, x2: width - right, y1: y, y2: y, stroke: "#f0d9dc" }));
+    svg.append(svgElement("text", { x: left - 9, y: y + 4, "text-anchor": "end", fill: "#756568", "font-size": 11 }, numberFormat.format(Math.round(max * tick / 4 / 1000000 * 10) / 10)));
+  }
+  rows.forEach((row, index) => {
+    const x = left + step * (index + .5), barWidth = Math.min(54, step * .58);
+    const barHeight = amounts[index] / max * plot;
+    if (row.cents !== null) {
+      const rect = svgElement("rect", { x: x - barWidth / 2, y: base - Math.max(barHeight, 2), width: barWidth, height: Math.max(barHeight, 2), rx: 7, fill: "#f51b29" });
+      rect.append(svgElement("title", {}, `${row.name}: ${money(amounts[index], "VND")}`));
+      svg.append(rect);
+      svg.append(svgElement("text", { x, y: base - barHeight - 10, "text-anchor": "middle", "font-size": 11, "font-weight": 800, fill: "#25191a" }, numberFormat.format(amounts[index])));
+    } else {
+      svg.append(svgElement("text", { x, y: base - 12, "text-anchor": "middle", "font-size": 11, fill: "#d80f1c" }, "Chưa tải được"));
+    }
+    const words = (names[row.key] || row.name).split(/\s+/);
+    const lines = [];
+    for (const word of words) {
+      if (!lines.length || `${lines[lines.length - 1]} ${word}`.length > 15) lines.push(word);
+      else lines[lines.length - 1] += ` ${word}`;
+    }
+    const label = svgElement("text", { x, y: base + 24, "text-anchor": "middle", "font-size": 12, "font-weight": 700, fill: "#514144" });
+    lines.slice(0, 4).forEach((line, i) => label.append(svgElement("tspan", { x, dy: i ? 16 : 0 }, line)));
+    svg.append(label);
+  });
+  $("monthChart").replaceChildren(svg);
+}
+
+async function loadMonthlyStats() {
+  const month = $("reportMonth").value;
+  const { start, end, partial } = monthRange(month);
+  if (!allShops.length) throw new Error("Danh sách cửa hàng chưa tải xong, vui lòng thử lại.");
+  monthController?.abort();
+  const controller = new AbortController();
+  monthController = controller;
+  const timeout = setTimeout(() => controller.abort(), 45000);
+  monthlyLoaded = "";
+  $("monthStatus").classList.remove("error");
+  $("monthStatus").textContent = `Đang tải doanh số ${allShops.length} cửa hàng...`;
+  $("monthTotal").textContent = "—";
+  $("monthChart").replaceChildren();
+  $("monthCoverage").textContent = "Đang tải...";
+  $("monthPeriod").textContent = `${start} đến ${end}`;
+  $("monthNote").textContent = partial ? "Tháng chưa đủ dữ liệu: tính trong khoảng ngày hiển thị, không gồm hôm nay." : "Doanh số được tính theo GMV TikTok Shop trong toàn bộ tháng đã chọn.";
+  try {
+    const rows = await Promise.all(allShops.map(async shop => {
+      try {
+        const query = new URLSearchParams({ shop: shop.key, start_date: start, end_date: end });
+        const response = await fetch(`${API_URL}/api/total?${query}`, { signal: controller.signal });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Không tải được số liệu.");
+        if (data.shop_name !== shop.name) throw new Error("Máy chủ trả số liệu của cửa hàng khác; vui lòng tải lại.");
+        if (data.currency !== "VND") throw new Error("Không thể cộng GMV khác đơn vị tiền tệ.");
+        return { ...shop, cents: toCents(data.gmv) };
+      } catch (error) { return { ...shop, cents: null, error: error.message }; }
+    }));
+    if (monthController !== controller || $("reportMonth").value !== month) return;
+    const available = rows.filter(row => row.cents !== null);
+    const failed = rows.filter(row => row.cents === null);
+    const total = available.reduce((sum, row) => sum + row.cents, 0n);
+    $("monthTotal").textContent = available.length ? money(Number(total) / 100, "VND") : "—";
+    $("monthTotalLabel").textContent = failed.length ? "GMV các cửa hàng đã tải được (chưa đủ tổng)" : "Tổng GMV tất cả cửa hàng";
+    $("monthCoverage").textContent = `${available.length}/${rows.length} cửa hàng`;
+    renderMonthlyChart(rows, month);
+    if (failed.length) {
+      showError($("monthStatus"), new Error(`Chưa tải được: ${failed.map(row => row.name).join(", ")}. Tổng đang thiếu các cửa hàng này; bấm “Xem tháng” để thử lại.`));
+    } else {
+      $("monthStatus").textContent = `Đã cập nhật GMV tháng ${month.slice(5)}/${month.slice(0, 4)} của ${rows.length} cửa hàng.`;
+      monthlyLoaded = month;
+    }
+  } finally { clearTimeout(timeout); }
 }
 
 $("reportDate").value = daysAgoISO(1);
 $("totalStartDate").value = daysAgoISO(30);
 $("totalEndDate").value = daysAgoISO(1);
+$("reportMonth").value = vietnamDate().slice(0, 7);
+$("reportMonth").max = vietnamDate().slice(0, 7);
+$("reportMonth").min = shiftDate(vietnamDate(), -365).slice(0, 7);
 $("dayTab").addEventListener("click", () => switchTab("day"));
 $("rangeTab").addEventListener("click", () => switchTab("range"));
+$("monthTab").addEventListener("click", () => switchTab("month"));
+$("reportMonth").addEventListener("change", () => {
+  monthController?.abort();
+  if (activeTab === "month") loadMonthlyStats().catch(error => showError($("monthStatus"), error));
+});
+$("monthFilterForm").addEventListener("submit", event => {
+  event.preventDefault();
+  loadMonthlyStats().catch(error => showError($("monthStatus"), error));
+});
 $("shopSelect").addEventListener("change", () => { dailyShop = ""; rangeShop = ""; switchTab(activeTab); });
 $("filterForm").addEventListener("submit", async (event) => {
   event.preventDefault();
