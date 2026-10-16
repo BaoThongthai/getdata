@@ -166,18 +166,24 @@ function svgElement(tag, attrs = {}, text) {
 function renderMonthlyChart(rows, month) {
   const names = { "nha-trang-mart": "Nhã Trang", "duc-tuyet": "Đức Tuyết", "phuoc-tai-da-nang": "Phước Tài", "bao-huy": "Bảo Huy", "thong-tu": "Thông Tứ", "phuong-my": "Phương My", "tien-quy": "Tiến Quý", "hoang-long": "Hoàng Long" };
   const width = Math.max(760, rows.length * 100 + 70), height = 400;
-  const left = 58, right = 20, top = 42, base = 312, plot = base - top;
+  const left = 64, right = 64, top = 52, base = 312, plot = base - top;
   const amounts = rows.map(row => row.cents === null ? 0 : Number(row.cents) / 100);
   const max = Math.max(...amounts, 1);
+  const maxOrders = Math.max(4, Math.ceil(Math.max(...rows.map(row => row.orders ?? 0)) / 4) * 4);
   const step = (width - left - right) / rows.length;
   const svg = svgElement("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", "aria-labelledby": "monthChartTitle monthChartDesc" });
-  svg.append(svgElement("title", { id: "monthChartTitle" }, `GMV từng cửa hàng tháng ${month}`));
-  svg.append(svgElement("desc", { id: "monthChartDesc" }, rows.map(row => `${row.name}: ${row.cents === null ? "chưa tải được" : money(Number(row.cents) / 100, "VND")}`).join(". ")));
+  svg.append(svgElement("title", { id: "monthChartTitle" }, `GMV và số đơn từng cửa hàng tháng ${month}`));
+  svg.append(svgElement("desc", { id: "monthChartDesc" }, "Cột đỏ: GMV, trục trái triệu đồng. Đường xanh: số đơn, trục phải đơn hàng. " + rows.map(row => `${row.name}: ${row.cents === null ? "chưa tải được" : `${money(Number(row.cents) / 100, "VND")}, ${numberFormat.format(row.orders)} đơn`}`).join(". ")));
+  svg.append(svgElement("text", { x: left, y: 20, fill: "#756568", "font-size": 11 }, "GMV (triệu đồng)"));
+  svg.append(svgElement("text", { x: width - right, y: 20, "text-anchor": "end", fill: "#1265b5", "font-size": 11 }, "Đơn hàng (đơn)"));
   for (let tick = 0; tick <= 4; tick++) {
     const y = base - plot * tick / 4;
     svg.append(svgElement("line", { x1: left, x2: width - right, y1: y, y2: y, stroke: "#f0d9dc" }));
     svg.append(svgElement("text", { x: left - 9, y: y + 4, "text-anchor": "end", fill: "#756568", "font-size": 11 }, numberFormat.format(Math.round(max * tick / 4 / 1000000 * 10) / 10)));
+    svg.append(svgElement("text", { x: width - right + 9, y: y + 4, fill: "#1265b5", "font-size": 11 }, numberFormat.format(maxOrders * tick / 4)));
   }
+  svg.append(svgElement("line", { x1: left, x2: left, y1: top, y2: base, stroke: "#f0d9dc" }));
+  svg.append(svgElement("line", { x1: width - right, x2: width - right, y1: top, y2: base, stroke: "#1265b5" }));
   rows.forEach((row, index) => {
     const x = left + step * (index + .5), barWidth = Math.min(54, step * .58);
     const barHeight = amounts[index] / max * plot;
@@ -198,6 +204,25 @@ function renderMonthlyChart(rows, month) {
     const label = svgElement("text", { x, y: base + 24, "text-anchor": "middle", "font-size": 12, "font-weight": 700, fill: "#514144" });
     lines.slice(0, 4).forEach((line, i) => label.append(svgElement("tspan", { x, dy: i ? 16 : 0 }, line)));
     svg.append(label);
+  });
+  // A missing shop breaks the line: it must never look like zero orders.
+  let segment = [];
+  const drawSegment = () => {
+    if (segment.length > 1) svg.append(svgElement("polyline", { points: segment.join(" "), fill: "none", stroke: "#1265b5", "stroke-width": 3, "stroke-linejoin": "round", "stroke-linecap": "round" }));
+    segment = [];
+  };
+  rows.forEach((row, index) => {
+    if (row.orders === null) { drawSegment(); return; }
+    segment.push(`${left + step * (index + .5)},${base - row.orders / maxOrders * plot}`);
+  });
+  drawSegment();
+  rows.forEach((row, index) => {
+    if (row.orders === null) return;
+    const x = left + step * (index + .5), y = base - row.orders / maxOrders * plot;
+    const dot = svgElement("circle", { cx: x, cy: y, r: 5, fill: "#1265b5", stroke: "white", "stroke-width": 2 });
+    dot.append(svgElement("title", {}, `${row.name}: ${numberFormat.format(row.orders)} đơn hàng`));
+    svg.append(dot);
+    svg.append(svgElement("text", { x, y: y + (y > base - 24 ? -14 : 21), "text-anchor": "middle", "font-size": 11, "font-weight": 800, fill: "#1265b5", stroke: "white", "stroke-width": 4, "paint-order": "stroke" }, `${numberFormat.format(row.orders)} đơn`));
   });
   $("monthChart").replaceChildren(svg);
 }
@@ -227,8 +252,9 @@ async function loadMonthlyStats() {
         if (!response.ok) throw new Error(data.error || "Không tải được số liệu.");
         if (data.shop_name !== shop.name) throw new Error("Máy chủ trả số liệu của cửa hàng khác; vui lòng tải lại.");
         if (data.currency !== "VND") throw new Error("Không thể cộng GMV khác đơn vị tiền tệ.");
-        return { ...shop, cents: toCents(data.gmv) };
-      } catch (error) { return { ...shop, cents: null, error: error.message }; }
+        if (!Number.isSafeInteger(data.orders_count) || data.orders_count < 0) throw new Error("Số đơn trả về không hợp lệ.");
+        return { ...shop, cents: toCents(data.gmv), orders: data.orders_count };
+      } catch (error) { return { ...shop, cents: null, orders: null, error: error.message }; }
     }));
     if (monthController !== controller || $("reportMonth").value !== month) return;
     const available = rows.filter(row => row.cents !== null);
@@ -241,7 +267,7 @@ async function loadMonthlyStats() {
     if (failed.length) {
       showError($("monthStatus"), new Error(`Chưa tải được: ${failed.map(row => row.name).join(", ")}. Tổng đang thiếu các cửa hàng này; bấm “Xem tháng” để thử lại.`));
     } else {
-      $("monthStatus").textContent = `Đã cập nhật GMV tháng ${month.slice(5)}/${month.slice(0, 4)} của ${rows.length} cửa hàng.`;
+      $("monthStatus").textContent = `Đã cập nhật GMV và số đơn tháng ${month.slice(5)}/${month.slice(0, 4)} của ${rows.length} cửa hàng.`;
       monthlyLoaded = month;
     }
   } finally { clearTimeout(timeout); }

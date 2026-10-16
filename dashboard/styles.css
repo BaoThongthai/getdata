@@ -57,6 +57,11 @@ button[type="submit"]:hover { background: var(--red-dark); border-color: var(--r
 .monthly-figure figcaption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; padding: 0 10px; font-weight: 800; }
 .monthly-figure figcaption span { color: var(--muted); font-weight: 400; font-size: 12px; }
 .chart-scroll { overflow-x: auto; }
+.chart-legend { display: flex; flex-wrap: wrap; gap: 10px 24px; padding: 12px 10px 2px; font-size: 12px; color: var(--muted); }
+.chart-legend span { display: inline-flex; align-items: center; gap: 8px; }
+.legend-bar { width: 13px; height: 13px; background: #f51b29; border-radius: 3px; }
+.legend-line { position: relative; width: 24px; height: 3px; background: #1265b5; }
+.legend-line::after { content: ""; position: absolute; left: 9px; top: -3px; width: 9px; height: 9px; border-radius: 50%; background: #1265b5; }
 .chart-scroll:focus-visible { outline: 2px solid var(--red); outline-offset: 3px; }
 #monthChart svg { display: block; width: 100%; min-width: 720px; height: auto; }
 @media (max-width: 860px) { .brand-header, .panel-heading { align-items: stretch; flex-direction: column; } .shop-picker, .date-form { width: 100%; max-width: none; } .cards { grid-template-columns: repeat(2, 1fr); } }
