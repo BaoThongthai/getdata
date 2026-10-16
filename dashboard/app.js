@@ -174,24 +174,24 @@ function renderMonthlyChart(rows, month) {
   const svg = svgElement("svg", { viewBox: `0 0 ${width} ${height}`, role: "img", "aria-labelledby": "monthChartTitle monthChartDesc" });
   svg.append(svgElement("title", { id: "monthChartTitle" }, `GMV và số đơn từng cửa hàng tháng ${month}`));
   svg.append(svgElement("desc", { id: "monthChartDesc" }, "Cột đỏ: GMV, trục trái triệu đồng. Đường xanh: số đơn, trục phải đơn hàng. " + rows.map(row => `${row.name}: ${row.cents === null ? "chưa tải được" : `${money(Number(row.cents) / 100, "VND")}, ${numberFormat.format(row.orders)} đơn`}`).join(". ")));
-  svg.append(svgElement("text", { x: left, y: 20, fill: "#756568", "font-size": 11 }, "GMV (triệu đồng)"));
-  svg.append(svgElement("text", { x: width - right, y: 20, "text-anchor": "end", fill: "#1265b5", "font-size": 11 }, "Đơn hàng (đơn)"));
+  svg.append(svgElement("text", { class: "gmv-series", x: left, y: 20, fill: "#756568", "font-size": 11 }, "GMV (triệu đồng)"));
+  svg.append(svgElement("text", { class: "order-series", x: width - right, y: 20, "text-anchor": "end", fill: "#1265b5", "font-size": 11 }, "Đơn hàng (đơn)"));
   for (let tick = 0; tick <= 4; tick++) {
     const y = base - plot * tick / 4;
     svg.append(svgElement("line", { x1: left, x2: width - right, y1: y, y2: y, stroke: "#f0d9dc" }));
-    svg.append(svgElement("text", { x: left - 9, y: y + 4, "text-anchor": "end", fill: "#756568", "font-size": 11 }, numberFormat.format(Math.round(max * tick / 4 / 1000000 * 10) / 10)));
-    svg.append(svgElement("text", { x: width - right + 9, y: y + 4, fill: "#1265b5", "font-size": 11 }, numberFormat.format(maxOrders * tick / 4)));
+    svg.append(svgElement("text", { class: "gmv-series", x: left - 9, y: y + 4, "text-anchor": "end", fill: "#756568", "font-size": 11 }, numberFormat.format(Math.round(max * tick / 4 / 1000000 * 10) / 10)));
+    svg.append(svgElement("text", { class: "order-series", x: width - right + 9, y: y + 4, fill: "#1265b5", "font-size": 11 }, numberFormat.format(maxOrders * tick / 4)));
   }
-  svg.append(svgElement("line", { x1: left, x2: left, y1: top, y2: base, stroke: "#f0d9dc" }));
-  svg.append(svgElement("line", { x1: width - right, x2: width - right, y1: top, y2: base, stroke: "#1265b5" }));
+  svg.append(svgElement("line", { class: "gmv-series", x1: left, x2: left, y1: top, y2: base, stroke: "#f0d9dc" }));
+  svg.append(svgElement("line", { class: "order-series", x1: width - right, x2: width - right, y1: top, y2: base, stroke: "#1265b5" }));
   rows.forEach((row, index) => {
     const x = left + step * (index + .5), barWidth = Math.min(54, step * .58);
     const barHeight = amounts[index] / max * plot;
     if (row.cents !== null) {
-      const rect = svgElement("rect", { x: x - barWidth / 2, y: base - Math.max(barHeight, 2), width: barWidth, height: Math.max(barHeight, 2), rx: 7, fill: "#f51b29" });
+      const rect = svgElement("rect", { class: "gmv-series", x: x - barWidth / 2, y: base - Math.max(barHeight, 2), width: barWidth, height: Math.max(barHeight, 2), rx: 7, fill: "#f51b29" });
       rect.append(svgElement("title", {}, `${row.name}: ${money(amounts[index], "VND")}`));
       svg.append(rect);
-      svg.append(svgElement("text", { class: "gmv-value-label", x, y: base - barHeight - 24, "text-anchor": "middle", "font-size": 11, "font-weight": 800, fill: "#25191a", stroke: "white", "stroke-width": 3, "paint-order": "stroke" }, numberFormat.format(amounts[index])));
+      svg.append(svgElement("text", { class: "gmv-series gmv-value-label", x, y: base - barHeight - 24, "text-anchor": "middle", "font-size": 11, "font-weight": 800, fill: "#25191a", stroke: "white", "stroke-width": 3, "paint-order": "stroke" }, numberFormat.format(amounts[index])));
     } else {
       svg.append(svgElement("text", { x, y: base - 12, "text-anchor": "middle", "font-size": 11, fill: "#d80f1c" }, "Chưa tải được"));
     }
@@ -208,7 +208,7 @@ function renderMonthlyChart(rows, month) {
   // A missing shop breaks the line: it must never look like zero orders.
   let segment = [];
   const drawSegment = () => {
-    if (segment.length > 1) svg.append(svgElement("polyline", { points: segment.join(" "), fill: "none", stroke: "#1265b5", "stroke-width": 3, "stroke-linejoin": "round", "stroke-linecap": "round" }));
+    if (segment.length > 1) svg.append(svgElement("polyline", { class: "order-series", points: segment.join(" "), fill: "none", stroke: "#1265b5", "stroke-width": 3, "stroke-linejoin": "round", "stroke-linecap": "round" }));
     segment = [];
   };
   rows.forEach((row, index) => {
@@ -219,10 +219,10 @@ function renderMonthlyChart(rows, month) {
   rows.forEach((row, index) => {
     if (row.orders === null) return;
     const x = left + step * (index + .5), y = base - row.orders / maxOrders * plot;
-    const dot = svgElement("circle", { cx: x, cy: y, r: 5, fill: "#1265b5", stroke: "white", "stroke-width": 2 });
+    const dot = svgElement("circle", { class: "order-series", cx: x, cy: y, r: 5, fill: "#1265b5", stroke: "white", "stroke-width": 2 });
     dot.append(svgElement("title", {}, `${row.name}: ${numberFormat.format(row.orders)} đơn hàng`));
     svg.append(dot);
-    svg.append(svgElement("text", { class: "order-value-label", x, y: y + (y > base - 24 ? -7 : 21), "text-anchor": "middle", "font-size": 11, "font-weight": 800, fill: "#1265b5", stroke: "white", "stroke-width": 4, "paint-order": "stroke" }, `${numberFormat.format(row.orders)} đơn`));
+    svg.append(svgElement("text", { class: "order-series order-value-label", x, y: y + (y > base - 24 ? -7 : 21), "text-anchor": "middle", "font-size": 11, "font-weight": 800, fill: "#1265b5", stroke: "white", "stroke-width": 4, "paint-order": "stroke" }, `${numberFormat.format(row.orders)} đơn`));
   });
   $("monthChart").replaceChildren(svg);
 }
@@ -273,13 +273,14 @@ async function loadMonthlyStats() {
   } finally { clearTimeout(timeout); }
 }
 
-function updateChartLabels() {
-  $("monthChart").classList.toggle("show-gmv-labels", $("showGmvLabels").checked);
-  $("monthChart").classList.toggle("show-order-labels", $("showOrderLabels").checked);
+function updateChartSeries() {
+  $("monthChart").classList.toggle("show-gmv-series", $("showGmvSeries").checked);
+  $("monthChart").classList.toggle("show-order-series", $("showOrderSeries").checked);
+  $("chartSeriesEmpty").hidden = $("showGmvSeries").checked || $("showOrderSeries").checked;
 }
-$("showGmvLabels").addEventListener("change", updateChartLabels);
-$("showOrderLabels").addEventListener("change", updateChartLabels);
-updateChartLabels();
+$("showGmvSeries").addEventListener("change", updateChartSeries);
+$("showOrderSeries").addEventListener("change", updateChartSeries);
+updateChartSeries();
 
 $("reportDate").value = daysAgoISO(1);
 $("totalStartDate").value = daysAgoISO(30);

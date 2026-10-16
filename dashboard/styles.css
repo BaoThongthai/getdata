@@ -60,7 +60,7 @@ button[type="submit"]:hover { background: var(--red-dark); border-color: var(--r
 .chart-label-toggles { display: inline-flex; flex-wrap: wrap; gap: 6px 14px; }
 .chart-label-toggles label { display: inline-flex; align-items: center; gap: 6px; margin: 0; min-height: 28px; font-size: 12px; font-weight: 500; cursor: pointer; }
 .chart-label-toggles input[type="checkbox"] { width: 15px; height: 15px; min-height: 15px; padding: 0; border-radius: 3px; accent-color: var(--red); cursor: pointer; }
-#monthChart:not(.show-gmv-labels) .gmv-value-label, #monthChart:not(.show-order-labels) .order-value-label { display: none; }
+#monthChart:not(.show-gmv-series) .gmv-series, #monthChart:not(.show-order-series) .order-series { display: none; }
 .chart-legend { display: flex; flex-wrap: wrap; gap: 10px 24px; padding: 12px 10px 2px; font-size: 12px; color: var(--muted); }
 .chart-legend span { display: inline-flex; align-items: center; gap: 8px; }
 .legend-bar { width: 13px; height: 13px; background: #f51b29; border-radius: 3px; }
