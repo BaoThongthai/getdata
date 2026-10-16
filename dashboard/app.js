@@ -191,7 +191,7 @@ function renderMonthlyChart(rows, month) {
       const rect = svgElement("rect", { x: x - barWidth / 2, y: base - Math.max(barHeight, 2), width: barWidth, height: Math.max(barHeight, 2), rx: 7, fill: "#f51b29" });
       rect.append(svgElement("title", {}, `${row.name}: ${money(amounts[index], "VND")}`));
       svg.append(rect);
-      svg.append(svgElement("text", { x, y: base - barHeight - 10, "text-anchor": "middle", "font-size": 11, "font-weight": 800, fill: "#25191a" }, numberFormat.format(amounts[index])));
+      svg.append(svgElement("text", { x, y: base - barHeight - 24, "text-anchor": "middle", "font-size": 11, "font-weight": 800, fill: "#25191a", stroke: "white", "stroke-width": 3, "paint-order": "stroke" }, numberFormat.format(amounts[index])));
     } else {
       svg.append(svgElement("text", { x, y: base - 12, "text-anchor": "middle", "font-size": 11, fill: "#d80f1c" }, "Chưa tải được"));
     }
@@ -222,7 +222,7 @@ function renderMonthlyChart(rows, month) {
     const dot = svgElement("circle", { cx: x, cy: y, r: 5, fill: "#1265b5", stroke: "white", "stroke-width": 2 });
     dot.append(svgElement("title", {}, `${row.name}: ${numberFormat.format(row.orders)} đơn hàng`));
     svg.append(dot);
-    svg.append(svgElement("text", { x, y: y + (y > base - 24 ? -14 : 21), "text-anchor": "middle", "font-size": 11, "font-weight": 800, fill: "#1265b5", stroke: "white", "stroke-width": 4, "paint-order": "stroke" }, `${numberFormat.format(row.orders)} đơn`));
+    svg.append(svgElement("text", { x, y: y + (y > base - 24 ? -7 : 21), "text-anchor": "middle", "font-size": 11, "font-weight": 800, fill: "#1265b5", stroke: "white", "stroke-width": 4, "paint-order": "stroke" }, `${numberFormat.format(row.orders)} đơn`));
   });
   $("monthChart").replaceChildren(svg);
 }
