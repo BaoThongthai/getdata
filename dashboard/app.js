@@ -7,6 +7,8 @@ let rangeShop = "";
 let allShops = [];
 let monthlyLoaded = "";
 let monthController;
+let dailyController;
+const ALL_SHOPS = "__all__";
 
 function daysAgoISO(days) {
   const value = new Date();
@@ -54,17 +56,55 @@ async function loadStats() {
   status.textContent = "Đang tải dữ liệu...";
   const shop = $("shopSelect").value;
   const date = $("reportDate").value;
-  const response = await fetch(`${API_URL}/api/stats?shop=${encodeURIComponent(shop)}&date=${encodeURIComponent(date)}`);
-  const result = await response.json().catch(() => ({}));
-  if ($("shopSelect").value !== shop) return;
-  if (!response.ok) throw new Error(result.error || `Máy chủ trả lỗi HTTP ${response.status}`);
+  dailyController?.abort();
+  const controller = new AbortController();
+  dailyController = controller;
+  const timeout = setTimeout(() => controller.abort(), 45000);
+  let result;
+  try {
+    const targets = shop === ALL_SHOPS ? allShops : allShops.filter(item => item.key === shop);
+    if (!targets.length) throw new Error("Danh sách cửa hàng chưa sẵn sàng.");
+    const rows = await Promise.all(targets.map(async target => {
+      try {
+        const query = new URLSearchParams({ shop: target.key, date });
+        const response = await fetch(`${API_URL}/api/stats?${query}`, { signal: controller.signal });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
+        if (data.shop_name !== target.name || data.date !== date) throw new Error("Dữ liệu không đúng shop hoặc ngày đã chọn.");
+        if (data.currency !== "VND") throw new Error("Đơn vị tiền tệ không hợp lệ.");
+        const cents = toCents(data.gmv);
+        for (const key of ["items_sold", "sku_orders_count", "orders_count"]) {
+          if (!Number.isSafeInteger(data[key]) || data[key] < 0) throw new Error("Chỉ số trả về không hợp lệ.");
+        }
+        return { data, cents };
+      } catch (error) { return { error: `${target.name}: ${error.message}` }; }
+    }));
+    if (dailyController !== controller || $("shopSelect").value !== shop || $("reportDate").value !== date || activeTab !== "day") return;
+    const failed = rows.filter(row => row.error);
+    if (failed.length) throw new Error(`Chưa tải đủ dữ liệu (${rows.length - failed.length}/${rows.length} cửa hàng). Không hiển thị tổng thiếu. ${failed.map(row => row.error).join("; ")}. Bấm “Xem số liệu” để thử lại.`);
+    const sum = key => {
+      const value = rows.reduce((total, row) => total + row.data[key], 0);
+      if (!Number.isSafeInteger(value)) throw new Error("Tổng chỉ số vượt giới hạn xử lý.");
+      return value;
+    };
+    const dates = rows.map(row => row.data.latest_available_date).filter(Boolean).sort();
+    result = shop === ALL_SHOPS ? {
+      shop_name: "Tổng cộng · Tất cả cửa hàng",
+      gmv: Number(rows.reduce((total, row) => total + row.cents, 0n)) / 100,
+      currency: "VND", items_sold: sum("items_sold"), sku_orders_count: sum("sku_orders_count"), orders_count: sum("orders_count"),
+      latest_available_date: dates.length === rows.length ? dates[0] : "Không rõ",
+    } : rows[0].data;
+  } catch (error) {
+    if (dailyController !== controller || $("shopSelect").value !== shop || $("reportDate").value !== date || activeTab !== "day") return;
+    throw error;
+  } finally { clearTimeout(timeout); }
   if (activeTab !== "month") $("shopName").textContent = result.shop_name || "TikTok Shop";
   $("gmv").textContent = money(result.gmv, result.currency);
   $("itemsSold").textContent = numberFormat.format(result.items_sold || 0);
   $("skuOrders").textContent = numberFormat.format(result.sku_orders_count || 0);
   $("orders").textContent = numberFormat.format(result.orders_count || 0);
   $("latestDate").textContent = result.latest_available_date || "Không rõ";
-  status.textContent = `Đã cập nhật số liệu ngày ${date}.`;
+  status.textContent = shop === ALL_SHOPS ? `Tổng cộng ngày ${date} · Đã tải đủ ${allShops.length}/${allShops.length} cửa hàng.` : `Đã cập nhật số liệu ngày ${date}.`;
   dailyShop = shop;
 }
 
@@ -101,6 +141,11 @@ async function loadShops() {
     option.textContent = shop.name;
     return option;
   }));
+  const totalOption = document.createElement("option");
+  totalOption.value = ALL_SHOPS;
+  totalOption.textContent = "Tổng cộng";
+  $("shopSelect").prepend(totalOption);
+  $("shopSelect").value = shops[0].key;
 }
 
 async function switchTab(tab) {
@@ -111,6 +156,9 @@ async function switchTab(tab) {
     $(`${name}Panel`).hidden = tab !== name;
   }
   $("shopSelect").closest(".shop-picker").hidden = tab === "month";
+  const totalOption = $("shopSelect").querySelector(`option[value="${ALL_SHOPS}"]`);
+  if (totalOption) { totalOption.hidden = tab !== "day"; totalOption.disabled = tab !== "day"; }
+  if (tab === "range" && $("shopSelect").value === ALL_SHOPS) $("shopSelect").value = allShops[0]?.key || "";
   $("shopName").textContent = tab === "month" ? "Tất cả cửa hàng" : selectedShopName();
   const shop = $("shopSelect").value;
   try {
