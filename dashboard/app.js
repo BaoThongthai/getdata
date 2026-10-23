@@ -1,4 +1,5 @@
 const API_URL = "https://tiktok-shop-dashboard-api.nhatrang-mart-api.workers.dev";
+const fetch = window.dashboardFetch;
 const $ = (id) => document.getElementById(id);
 const numberFormat = new Intl.NumberFormat("vi-VN");
 let activeTab = "day";

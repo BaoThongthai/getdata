@@ -1,0 +1,26 @@
+name = "tiktok-shop-dashboard-api"
+main = "worker.js"
+compatibility_date = "2026-10-11"
+
+[[kv_namespaces]]
+binding = "TIKTOK_TOKENS"
+id = "5ee2754752464852928937bfb55033d5"
+
+[vars]
+# Tạm cho phép mọi origin. Sau khi biết URL GitHub Pages có thể giới hạn lại.
+ALLOWED_ORIGIN = ""
+
+[assets]
+directory = "../dashboard"
+binding = "ASSETS"
+run_worker_first = true
+
+[[ratelimits]]
+name = "LOGIN_RATE_LIMIT"
+namespace_id = "10112301"
+simple = { limit = 5, period = 60 }
+
+[[ratelimits]]
+name = "ACCOUNT_RATE_LIMIT"
+namespace_id = "10112302"
+simple = { limit = 20, period = 60 }

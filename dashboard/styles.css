@@ -56,6 +56,20 @@ button[type="submit"]:hover { background: var(--red-dark); border-color: var(--r
 .monthly-figure { margin: 28px 0; padding: 18px 12px 8px; border: 1px solid var(--line); border-radius: 18px; background: white; }
 .monthly-figure figcaption { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px; padding: 0 10px; font-weight: 800; }
 .monthly-figure figcaption span { color: var(--muted); font-weight: 400; font-size: 12px; }
+[hidden] { display: none !important; }
+.login-shell { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; }
+.login-card { width: min(100%, 440px); padding: 36px; border: 1px solid var(--line); border-radius: 24px; background: #fff; box-shadow: 0 20px 70px rgba(117,41,48,.12); }
+.login-logo { width: 92px; border-radius: 14px; margin-bottom: 20px; }
+.login-card h1 { font-size: clamp(25px,6vw,32px); margin: 10px 0; }
+.login-description, .login-footnote { color: var(--muted); font-size: 13px; line-height: 1.6; }
+.login-card form { margin-top: 24px; }
+.login-card input { margin-bottom: 18px; }
+.login-card button { width: 100%; margin-top: 4px; }
+.login-card button:disabled { opacity: .6; cursor: wait; }
+.login-status { min-height: 20px; font-size: 13px; line-height: 1.5; color: #b4111c; }
+.login-footnote { margin: 20px 0 0; text-align: center; }
+.account-bar { display: flex; align-items: center; justify-content: flex-end; gap: 14px; margin-bottom: 20px; font-size: 12px; color: var(--muted); }
+.account-bar button { padding: 8px 14px; min-height: 34px; font-size: 12px; }
 .chart-scroll { overflow-x: auto; }
 .chart-label-toggles { display: inline-flex; flex-wrap: wrap; gap: 6px 14px; }
 .chart-label-toggles label { display: inline-flex; align-items: center; gap: 6px; margin: 0; min-height: 28px; font-size: 12px; font-weight: 500; cursor: pointer; }

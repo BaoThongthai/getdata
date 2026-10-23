@@ -7,10 +7,29 @@
     <title>Dashboard Vifon Miền Trung 1</title>
     <link rel="icon" type="image/png" href="assets/vifon-logo.png?v=1" />
     <link rel="apple-touch-icon" href="assets/vifon-logo.png?v=1" />
-    <link rel="stylesheet" href="styles.css?v=series-toggles-1" />
+    <meta name="referrer" content="no-referrer" />
+    <link rel="stylesheet" href="styles.css?v=secure-login-1" />
   </head>
   <body>
-    <main class="page-shell">
+    <section id="loginPanel" class="login-shell" aria-labelledby="loginTitle">
+      <div class="login-card">
+        <img class="login-logo" src="assets/vifon-logo.png" alt="VIFON" />
+        <p class="eyebrow">DASHBOARD NỘI BỘ</p>
+        <h1 id="loginTitle">Vifon Miền Trung 1</h1>
+        <p class="login-description">Đăng nhập để xem số liệu các cửa hàng.</p>
+        <form id="loginForm">
+          <label for="loginUsername">Tên đăng nhập</label>
+          <input id="loginUsername" name="username" autocomplete="username" maxlength="100" required />
+          <label for="loginPassword">Mật khẩu</label>
+          <input id="loginPassword" name="password" type="password" autocomplete="current-password" maxlength="256" required />
+          <button id="loginButton" type="submit">Đăng nhập</button>
+          <p id="loginStatus" class="login-status" role="alert" aria-live="polite"></p>
+        </form>
+        <p class="login-footnote">Chỉ dành cho người được cấp tài khoản.</p>
+      </div>
+    </section>
+    <main id="dashboardPanel" class="page-shell" hidden>
+      <div class="account-bar"><span>Dashboard nội bộ</span><button id="logoutButton" type="button">Đăng xuất</button></div>
       <header class="brand-header">
         <div class="brand-lockup">
           <img class="brand-logo" src="assets/vifon-logo.png" alt="VIFON - Luôn Vì Hôm Nay Từ 1963" />
@@ -98,6 +117,6 @@
         </section>
       </section>
     </main>
-    <script src="app.js?v=daily-all-shops-1"></script>
+    <script src="auth.js?v=secure-login-1"></script>
   </body>
 </html>
