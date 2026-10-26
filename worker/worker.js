@@ -250,6 +250,36 @@ async function getTotalStats(env, shopKey, requestedStart, requestedEnd) {
   });
 }
 
+export async function getTopProducts(env, shopKey, date) {
+  const shops = await getShops(env);
+  const shop = shops.find(item => item.key === shopKey);
+  if (!shop) throw new Error("Hãy chọn một cửa hàng cụ thể để xem sản phẩm.");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date || "") || new Date(`${date}T00:00:00Z`).toISOString().slice(0, 10) !== date) throw new Error("Ngày không hợp lệ.");
+  if (date >= todayInVietnam()) throw new Error("Số liệu sản phẩm chỉ có đến ngày hôm qua.");
+  if (date < addDays(todayInVietnam(), -180)) throw new Error("Chỉ xem sản phẩm trong 180 ngày gần nhất.");
+  const data = await apiGetWithRefresh(env, shop, "/analytics/202605/shop_products/performance", {
+    shop_cipher: shop.cipher, version: "202605", start_date_ge: date, end_date_lt: nextDate(date),
+    page_size: 3, sort_field: "orders", sort_order: "DESC", currency: "LOCAL",
+  });
+  if (!Array.isArray(data.products)) throw new Error("TikTok chưa trả danh sách sản phẩm hợp lệ.");
+  const products = data.products.map(product => {
+    const orders = product.total_performance?.orders;
+    if (!/^\d+$/.test(String(product.id)) || !Number.isSafeInteger(orders) || orders < 0) throw new Error("Dữ liệu đơn sản phẩm không hợp lệ.");
+    return { id: String(product.id), name: typeof product.title === "string" ? product.title : typeof product.name === "string" ? product.name : null, orders };
+  }).filter(product => product.orders > 0).sort((a, b) => b.orders - a.orders).slice(0, 3);
+  // Product names are not included in every Analytics response. Use only
+  // existing permissions; never require new authorization or invent a name.
+  await Promise.all(products.map(async product => {
+    if (product.name) return;
+    try {
+      const info = await apiGetWithRefresh(env, shop, `/product/202309/products/${product.id}`, { shop_cipher: shop.cipher, version: "202309" });
+      if (typeof info.title === "string" && info.title.trim()) product.name = info.title;
+    } catch { /* Keep the exact product ID when metadata access is unavailable. */ }
+  }));
+  return { shop_key: shop.key, shop_name: shop.name, date, products, latest_available_date: data.latest_available_date || null,
+    names_unavailable: products.some(product => !product.name) };
+}
+
 const api = {
   async fetch(request, env) {
     const origin = allowedOrigin(request, env);
@@ -268,6 +298,9 @@ const api = {
     try {
       assertConfig(env);
       const url = new URL(request.url);
+      if (url.pathname === "/api/top-products" && request.method === "GET") {
+        return json(await getTopProducts(env, url.searchParams.get("shop"), url.searchParams.get("date")), 200, origin);
+      }
       if (url.pathname === "/api/shops" && request.method === "GET") {
         const shops = await getShops(env);
         return json(

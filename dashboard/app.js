@@ -9,6 +9,7 @@ let allShops = [];
 let monthlyLoaded = "";
 let monthController;
 let dailyController;
+let productsController;
 const ALL_SHOPS = "__all__";
 
 function daysAgoISO(days) {
@@ -51,6 +52,7 @@ function resetRangeStats() {
 }
 
 async function loadStats() {
+  void loadTopProducts();
   const status = $("status");
   resetDailyStats();
   status.classList.remove("error");
@@ -109,6 +111,50 @@ async function loadStats() {
   dailyShop = shop;
 }
 
+function resetTopProducts(message) {
+  productsController?.abort();
+  $("topProductsList").replaceChildren();
+  $("topProductsStatus").classList.remove("error");
+  $("topProductsStatus").textContent = message;
+}
+
+async function loadTopProducts() {
+  const shop = $("shopSelect").value;
+  const date = $("reportDate").value;
+  resetTopProducts(shop === ALL_SHOPS ? "Chọn một cửa hàng cụ thể để xem Top 3 sản phẩm của cửa hàng đó." : "Đang tải sản phẩm bán chạy...");
+  if (shop === ALL_SHOPS || activeTab !== "day") return;
+  const controller = new AbortController();
+  productsController = controller;
+  const timeout = setTimeout(() => controller.abort(), 45000);
+  const isCurrent = () => productsController === controller && activeTab === "day" && $("shopSelect").value === shop && $("reportDate").value === date;
+  try {
+    const query = new URLSearchParams({ shop, date });
+    const response = await fetch(`${API_URL}/api/top-products?${query}`, { signal: controller.signal });
+    const result = await response.json();
+    if (!isCurrent()) return;
+    if (!response.ok) throw new Error(result.error || "Chưa tải được sản phẩm. Bấm Xem số liệu để thử lại.");
+    if (result.shop_key !== shop || result.shop_name !== selectedShopName() || result.date !== date || !Array.isArray(result.products) || result.products.length > 3) throw new Error("Dữ liệu sản phẩm không đúng shop hoặc ngày đã chọn.");
+    for (const product of result.products) {
+      if (!/^\d+$/.test(product.id) || !Number.isSafeInteger(product.orders) || product.orders <= 0) throw new Error("Số đơn sản phẩm không hợp lệ.");
+    }
+    if (result.latest_available_date && result.latest_available_date < date) throw new Error(`TikTok chưa có số liệu sản phẩm ngày ${date}. Ngày mới nhất: ${result.latest_available_date}.`);
+    const nodes = result.products.map((product, index) => {
+      const item = document.createElement("li");
+      const rank = document.createElement("span"); rank.className = "product-rank"; rank.textContent = String(index + 1);
+      const info = document.createElement("div"); info.className = "product-info";
+      const title = document.createElement("strong"); title.textContent = product.name || `Sản phẩm ${product.id}`;
+      const id = document.createElement("small"); id.textContent = `Mã sản phẩm: ${product.id}`;
+      info.append(title, id);
+      const count = document.createElement("strong"); count.className = "product-orders"; count.textContent = `${numberFormat.format(product.orders)} đơn`;
+      item.append(rank, info, count); return item;
+    });
+    $("topProductsList").replaceChildren(...nodes);
+    $("topProductsStatus").textContent = !nodes.length ? `Không có sản phẩm phát sinh đơn trong ngày ${date}.` : `Ngày ${date} · ${selectedShopName()}${result.names_unavailable ? " · TikTok chưa cung cấp tên một số sản phẩm với quyền hiện có; hiển thị mã để đối chiếu." : ""}`;
+  } catch (error) {
+    if (isCurrent()) showError($("topProductsStatus"), new Error(error.name === "AbortError" ? "Tải sản phẩm quá lâu. Bấm Xem số liệu để thử lại." : error.message));
+  } finally { clearTimeout(timeout); }
+}
+
 async function loadRangeStats() {
   const status = $("totalStatus");
   resetRangeStats();
@@ -150,6 +196,7 @@ async function loadShops() {
 }
 
 async function switchTab(tab) {
+  if (tab !== "day") { productsController?.abort(); dailyShop = ""; }
   activeTab = tab;
   for (const name of ["day", "range", "month"]) {
     $(`${name}Tab`).classList.toggle("active", tab === name);
@@ -349,6 +396,7 @@ $("monthFilterForm").addEventListener("submit", event => {
   loadMonthlyStats().catch(error => showError($("monthStatus"), error));
 });
 $("shopSelect").addEventListener("change", () => { dailyShop = ""; rangeShop = ""; switchTab(activeTab); });
+$("reportDate").addEventListener("change", () => { dailyShop = ""; resetTopProducts("Bấm Xem số liệu để tải sản phẩm của ngày đã chọn."); });
 $("filterForm").addEventListener("submit", async (event) => {
   event.preventDefault();
   try { await loadStats(); } catch (error) { showError($("status"), error); }

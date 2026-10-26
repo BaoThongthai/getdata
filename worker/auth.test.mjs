@@ -16,6 +16,7 @@ const login = (username='test-user',password='test-password-only',origin=root)=>
 test('authentication, cookies, expiration, logout, API gate and security headers',async()=>{
  const {env,values}=setup();
  assert.equal((await worker.fetch(request('/api/shops'),env)).status,401);
+ assert.equal((await worker.fetch(request('/api/top-products?shop=test&date=2026-10-22'),env)).status,401);
  assert.equal((await worker.fetch(request('/api/stats?date=2026-10-22'),env)).status,401);
  assert.equal((await worker.fetch(request('/api/total'),env)).status,401);
  assert.equal((await authGate(login('bad','bad'),env)).status,401);

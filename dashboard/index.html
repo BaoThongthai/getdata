@@ -8,7 +8,7 @@
     <link rel="icon" type="image/png" href="assets/vifon-logo.png?v=1" />
     <link rel="apple-touch-icon" href="assets/vifon-logo.png?v=1" />
     <meta name="referrer" content="no-referrer" />
-    <link rel="stylesheet" href="styles.css?v=secure-login-1" />
+    <link rel="stylesheet" href="styles.css?v=top-products-1" />
   </head>
   <body>
     <section id="loginPanel" class="login-shell" aria-labelledby="loginTitle">
@@ -68,6 +68,12 @@
             <article class="metric-card"><span>Đơn hàng</span><strong id="orders">—</strong></article>
           </div>
           <p class="data-note">Dữ liệu mới nhất: <span id="latestDate">—</span></p>
+          <section class="top-products" aria-labelledby="topProductsTitle">
+            <div class="top-products-heading"><div><p class="section-kicker">GỢI Ý NHẬP HÀNG</p><h2 id="topProductsTitle">Top 3 sản phẩm bán chạy</h2></div><span>Sắp xếp theo số đơn</span></div>
+            <p id="topProductsStatus" class="status" role="status">Chọn cửa hàng và ngày để xem.</p>
+            <ol id="topProductsList" class="top-products-list"></ol>
+            <p class="data-note">Số đơn của đúng ngày đã chọn, không phải số lượng sản phẩm. Một đơn có thể chứa nhiều sản phẩm. Không hiển thị tồn kho.</p>
+          </section>
         </section>
 
         <section id="rangePanel" class="tab-panel" role="tabpanel" aria-labelledby="rangeTab" hidden>
@@ -117,6 +123,6 @@
         </section>
       </section>
     </main>
-    <script src="auth.js?v=secure-login-1"></script>
+    <script src="auth.js?v=top-products-1"></script>
   </body>
 </html>
