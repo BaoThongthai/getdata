@@ -10,6 +10,7 @@ let monthlyLoaded = "";
 let monthController;
 let dailyController;
 let productsController;
+let rangeProductsController;
 const ALL_SHOPS = "__all__";
 
 function daysAgoISO(days) {
@@ -162,6 +163,7 @@ async function loadTopProducts() {
 }
 
 async function loadRangeStats() {
+  void loadRangeTopProducts();
   const status = $("totalStatus");
   resetRangeStats();
   status.classList.remove("error");
@@ -181,6 +183,51 @@ async function loadRangeStats() {
   $("totalRange").textContent = `${result.period_start} đến ${result.period_end}`;
   status.textContent = `Đã cập nhật số liệu từ ${result.period_start} đến ${result.period_end}.`;
   rangeShop = shop;
+}
+
+function resetRangeTopProducts(message) {
+  rangeProductsController?.abort();
+  $("rangeTopProductsList").replaceChildren();
+  $("rangeTopProductsStatus").classList.remove("error");
+  $("rangeTopProductsStatus").textContent = message;
+}
+
+async function loadRangeTopProducts() {
+  const shop = $("shopSelect").value;
+  const startDate = $("totalStartDate").value;
+  const endDate = $("totalEndDate").value;
+  resetRangeTopProducts("Đang tải sản phẩm bán chạy trong khoảng ngày...");
+  const controller = new AbortController();
+  rangeProductsController = controller;
+  const timeout = setTimeout(() => controller.abort(), 45000);
+  const isCurrent = () => rangeProductsController === controller && activeTab === "range" && $("shopSelect").value === shop && $("totalStartDate").value === startDate && $("totalEndDate").value === endDate;
+  try {
+    const query = new URLSearchParams({ shop, start_date: startDate, end_date: endDate });
+    const response = await fetch(`${API_URL}/api/top-products?${query}`, { signal: controller.signal });
+    const result = await response.json();
+    if (!isCurrent()) return;
+    if (!response.ok) throw new Error(result.error || "Chưa tải được sản phẩm trong khoảng ngày.");
+    if (result.shop_key !== shop || result.shop_name !== selectedShopName() || result.period_start !== startDate || result.period_end !== endDate || !Array.isArray(result.products) || result.products.length > 10) throw new Error("Dữ liệu sản phẩm không đúng shop hoặc khoảng ngày đã chọn.");
+    for (const product of result.products) {
+      if (!/^\d+$/.test(product.id) || !Number.isSafeInteger(product.items_sold) || product.items_sold <= 0 || !Number.isSafeInteger(product.orders) || product.orders < 0) throw new Error("Số lượng sản phẩm không hợp lệ.");
+    }
+    if (result.latest_available_date && result.latest_available_date < endDate) throw new Error(`TikTok chưa có đủ số liệu sản phẩm đến ${endDate}. Ngày mới nhất: ${result.latest_available_date}.`);
+    const nodes = result.products.map((product, index) => {
+      const item = document.createElement("li");
+      const rank = document.createElement("span"); rank.className = "product-rank"; rank.textContent = String(index + 1);
+      const info = document.createElement("div"); info.className = "product-info";
+      const title = document.createElement("strong"); title.textContent = product.name || `Sản phẩm ${product.id}`;
+      const id = document.createElement("small"); id.textContent = `Mã sản phẩm: ${product.id}`;
+      const open = document.createElement("a"); open.className = "product-open"; open.href = `https://shop.tiktok.com/view/product/${encodeURIComponent(product.id)}?region=VN&locale=vi-VN`; open.target = "_blank"; open.rel = "noopener noreferrer"; open.textContent = "Mở sản phẩm";
+      info.append(title, id, open);
+      const count = document.createElement("strong"); count.className = "product-orders"; count.textContent = `${numberFormat.format(product.items_sold)} SP · ${numberFormat.format(product.orders)} đơn`;
+      item.append(rank, info, count); return item;
+    });
+    $("rangeTopProductsList").replaceChildren(...nodes);
+    $("rangeTopProductsStatus").textContent = !nodes.length ? `Không có sản phẩm phát sinh bán từ ${startDate} đến ${endDate}.` : `${selectedShopName()} · ${startDate} đến ${endDate}${result.names_unavailable ? " · Một số sản phẩm chỉ có mã do quyền hiện tại." : ""}`;
+  } catch (error) {
+    if (isCurrent()) showError($("rangeTopProductsStatus"), new Error(error.name === "AbortError" ? "Tải sản phẩm quá lâu. Bấm Xem khoảng ngày để thử lại." : error.message));
+  } finally { clearTimeout(timeout); }
 }
 
 async function loadShops() {
@@ -203,6 +250,7 @@ async function loadShops() {
 
 async function switchTab(tab) {
   if (tab !== "day") { productsController?.abort(); dailyShop = ""; }
+  if (tab !== "range") rangeProductsController?.abort();
   activeTab = tab;
   for (const name of ["day", "range", "month"]) {
     $(`${name}Tab`).classList.toggle("active", tab === name);
@@ -403,6 +451,8 @@ $("monthFilterForm").addEventListener("submit", event => {
 });
 $("shopSelect").addEventListener("change", () => { dailyShop = ""; rangeShop = ""; switchTab(activeTab); });
 $("reportDate").addEventListener("change", () => { dailyShop = ""; resetTopProducts("Bấm Xem số liệu để tải sản phẩm của ngày đã chọn."); });
+$("totalStartDate").addEventListener("change", () => { rangeShop = ""; resetRangeTopProducts("Bấm Xem khoảng ngày để tải sản phẩm."); });
+$("totalEndDate").addEventListener("change", () => { rangeShop = ""; resetRangeTopProducts("Bấm Xem khoảng ngày để tải sản phẩm."); });
 $("filterForm").addEventListener("submit", async (event) => {
   event.preventDefault();
   try { await loadStats(); } catch (error) { showError($("status"), error); }

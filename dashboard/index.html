@@ -94,6 +94,12 @@
             <article class="metric-card"><span>Đơn hàng SKU</span><strong id="totalSkuOrders">—</strong></article>
             <article class="metric-card"><span>Đơn hàng</span><strong id="totalOrders">—</strong></article>
           </div>
+          <section class="top-products" aria-labelledby="rangeTopProductsTitle">
+            <div class="top-products-heading"><div><p class="section-kicker">SẢN PHẨM BÁN CHẠY</p><h2 id="rangeTopProductsTitle">Top sản phẩm trong khoảng ngày</h2></div><span>Xếp theo số lượng bán</span></div>
+            <p id="rangeTopProductsStatus" class="status" role="status">Chọn khoảng ngày để xem.</p>
+            <ol id="rangeTopProductsList" class="top-products-list"></ol>
+            <p class="data-note">Hiển thị tối đa 10 sản phẩm, xếp theo tổng số sản phẩm bán ra trong toàn bộ khoảng đã chọn.</p>
+          </section>
         </section>
         <section id="monthPanel" class="tab-panel" role="tabpanel" aria-labelledby="monthTab" hidden>
           <div class="panel-heading">
@@ -123,6 +129,6 @@
         </section>
       </section>
     </main>
-    <script src="auth.js?v=product-links-1"></script>
+    <script src="auth.js?v=range-products-1"></script>
   </body>
 </html>
