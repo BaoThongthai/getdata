@@ -35,7 +35,7 @@
     if (!loaded) {
       loaded = true;
       const script = document.createElement("script");
-      script.src = "app.js?v=top-products-1";
+      script.src = "app.js?v=product-links-1";
       script.onerror = () => lock("Không tải được giao diện. Vui lòng tải lại trang.");
       document.body.append(script);
     }

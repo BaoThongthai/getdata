@@ -59,6 +59,8 @@ button[type="submit"]:hover { background: var(--red-dark); border-color: var(--r
 .product-info { min-width: 0; flex: 1; overflow-wrap: anywhere; }
 .product-info strong { font-size: 14px; line-height: 1.5; }
 .product-info small { display: block; margin-top: 4px; font-size: 11px; color: var(--muted); }
+.product-open { display: inline-block; margin-top: 7px; padding: 5px 9px; border: 1px solid #f3b7bc; border-radius: 8px; color: var(--red); font-size: 11px; font-weight: 800; line-height: 1; text-decoration: none; }
+.product-open:hover, .product-open:focus-visible { color: #fff; background: var(--red); border-color: var(--red); }
 .product-orders { flex-shrink: 0; color: var(--red); white-space: nowrap; font-size: 18px; }
 @media (max-width: 590px) { .top-products-list li { gap: 8px; padding: 12px 10px; } .product-rank { flex-basis: 26px; width: 26px; height: 26px; } .product-info strong { font-size: 12px; } .product-orders { font-size: 15px; } }
 .month-summary { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 24px; border-radius: 18px; color: white; background: var(--red); }

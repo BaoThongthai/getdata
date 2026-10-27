@@ -144,7 +144,13 @@ async function loadTopProducts() {
       const info = document.createElement("div"); info.className = "product-info";
       const title = document.createElement("strong"); title.textContent = product.name || `Sản phẩm ${product.id}`;
       const id = document.createElement("small"); id.textContent = `Mã sản phẩm: ${product.id}`;
-      info.append(title, id);
+      const open = document.createElement("a");
+      open.className = "product-open";
+      open.href = `https://shop.tiktok.com/view/product/${encodeURIComponent(product.id)}?region=VN&locale=vi-VN`;
+      open.target = "_blank";
+      open.rel = "noopener noreferrer";
+      open.textContent = "Mở sản phẩm";
+      info.append(title, id, open);
       const count = document.createElement("strong"); count.className = "product-orders"; count.textContent = `${numberFormat.format(product.orders)} đơn`;
       item.append(rank, info, count); return item;
     });
